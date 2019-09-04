@@ -6,7 +6,7 @@ import axios from 'axios'
 import config from 'config'
 
 function App() {
-  axios.defaults.headers.common['Authorization'] = config.API_KEY;
+  axios.defaults.headers.common['Authorization'] = `Token ${config.API_KEY}`;
 
   return (
     <div className="App">
@@ -24,7 +24,6 @@ function App() {
           Learn React
         </a>
 
-        <ActionButtons />
       </header>
     </div>
   );
