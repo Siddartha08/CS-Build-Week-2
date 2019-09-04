@@ -1,8 +1,13 @@
 import React from 'react';
-import logo from './logo.svg';
+import logo from '../logo.svg';
 import './App.css';
+import { ActionButtons } from './ActionButtons'
+import axios from 'axios'
+import config from 'config'
 
 function App() {
+  axios.defaults.headers.common['Authorization'] = `Token ${config.API_KEY}`;
+
   return (
     <div className="App">
       <header className="App-header">
@@ -18,6 +23,7 @@ function App() {
         >
           Learn React
         </a>
+
       </header>
     </div>
   );
