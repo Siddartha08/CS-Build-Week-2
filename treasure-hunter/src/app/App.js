@@ -21,6 +21,17 @@ class App extends Component {
     });
   }
 
+  getOppositeDir = dir => {
+    const opps = {
+      n: "s",
+      s: "n",
+      e: "w",
+      w: "e"
+    };
+
+    return opps[dir];
+  };
+
   move = dir => {
     return new Promise((resolve, reject) => {
       if (this.cooling > 1) {
@@ -86,13 +97,19 @@ class App extends Component {
       if (!visitedRoom) {
         visitedRoom = await addRoom(nextRoom);
       } else {
-        // update exits: set opposite exit of exit to prevRoom and set exit or prevRoom to currRoom
-        updateRoom(nextRoom);
+        // update exits: set opposite exit of exit to currentRoom and set exit of currentRoom to visitedRoom
+        //update currentRoom
+        currentRoom.exits[Object.keys(exit)[0]] = visitedRoom.id;
+
+        //update visitedRoom
+        visitedRoom.exits[this.getOppositeDir(Object.keys(exit)[0])] =
+          currentRoom.id;
+
+        await updateRoom(nextRoom);
+        visitedRoom = await updateRoom(visitedRoom);
       }
 
-      nextRoom = visitedRoom;
-
-      console.log(nextRoom);
+      console.log(visitedRoom);
     }
 
     // recurse
