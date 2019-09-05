@@ -4,21 +4,19 @@ import "./App.css";
 import { ActionButtons } from "./ActionButtons";
 import axios from "axios";
 import config from "config";
-import { init } from "../db";
+import { init, count, getRoom, addRoom, updateRoom } from "../db";
 
 class App extends Component {
   state = {
     currentRoom: null
   };
 
-  db = null;
   cooling = 1;
 
   componentDidMount() {
     axios.defaults.headers.common["Authorization"] = `Token ${config.API_KEY}`;
 
-    init().then(({ room, db }) => {
-      this.db = db;
+    init().then(room => {
       this.setState({ currentRoom: room });
     });
   }
@@ -57,7 +55,7 @@ class App extends Component {
     this.cooling = currentRoom.cooldown;
 
     // if total rooms length is <500 proceed
-    const totalRooms = await this.db.rooms.count();
+    const totalRooms = await count();
 
     if (totalRooms < 500) {
       // find an unvisited room in currentRoom.exits, set to "exit"
@@ -83,11 +81,20 @@ class App extends Component {
       // try to move
       let nextRoom = await this.move(Object.keys(exit)[0]);
 
+      // look up room in db, if it doesn't exist add one. If it does, update exits
+      let visitedRoom = await getRoom(nextRoom.room_id);
+      if (!visitedRoom) {
+        visitedRoom = await addRoom(nextRoom);
+      } else {
+        // update exits: set opposite exit of exit to prevRoom and set exit or prevRoom to currRoom
+        updateRoom(nextRoom);
+      }
+
+      nextRoom = visitedRoom;
+
       console.log(nextRoom);
     }
 
-    // look up room in db, if it doesn't exist add one. If it does, update exits
-    // update exits: set opposite exit of exit to prevRoom and set exit or prevRoom to currRoom
     // recurse
   };
 

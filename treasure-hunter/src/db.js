@@ -30,9 +30,13 @@ export const init = () => {
     });
 };
 
+export const count = () => {
+  return db.rooms.count();
+};
+
 export const getRoom = id => {
   return db.rooms.get(id).then(room => {
-    return { room, db };
+    return room;
   });
 };
 
@@ -55,8 +59,7 @@ export const addRoom = room => {
       return db.rooms
         .get(room.room_id)
         .then(initialRoom => {
-          console.log("room: ", initialRoom);
-          return { room: initialRoom, db };
+          return initialRoom;
         })
         .catch(err => {
           console.log(err);
