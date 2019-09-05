@@ -13,7 +13,7 @@ class ActionButtons extends Component {
     this.props.move(dir).then(room => {
       console.log(room)
     }).catch(err => {})
-  }
+  };
 
   render() {
     return (
