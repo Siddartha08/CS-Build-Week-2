@@ -37,7 +37,6 @@ class App extends Component {
       <div className="App">
         <ActionButtons
           currentRoom={currentRoom}
-          explore={this.explore}
           setCurrentRoom={this.setCurrentRoom}
         />
       </div>
