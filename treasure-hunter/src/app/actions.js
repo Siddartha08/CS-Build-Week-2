@@ -91,7 +91,7 @@ export const explore = async currentRoom => {
     console.log(exit);
 
     // try to move
-    let nextRoom = await this.move(Object.keys(exit)[0]);
+    let nextRoom = await move(Object.keys(exit)[0]);
 
     // look up room in db, if it doesn't exist add one. If it does, update exits
     let visitedRoom = await getRoom(nextRoom.room_id);
@@ -103,11 +103,10 @@ export const explore = async currentRoom => {
       currentRoom.exits[Object.keys(exit)[0]] = visitedRoom.id;
 
       //update visitedRoom
-      visitedRoom.exits[this.getOppositeDir(Object.keys(exit)[0])] =
-        currentRoom.id;
+      visitedRoom.exits[getOppositeDir(Object.keys(exit)[0])] = currentRoom.id;
 
-      await updateRoom(nextRoom);
-      await updateRoom(visitedRoom);
+      await updateRoom(currentRoom, currentRoom.id);
+      await updateRoom(visitedRoom, visitedRoom.id);
     }
 
     // TODO examine current room

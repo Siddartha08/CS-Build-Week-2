@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { FlexRow } from "style";
 import { Button } from "@material-ui/core";
-import { move } from "../actions";
+import { move, explore } from "../actions";
 
 class ActionButtons extends Component {
   moveAndSetCurrentRoom = dir => {
@@ -15,7 +15,7 @@ class ActionButtons extends Component {
   };
 
   render() {
-    const { currentRoom, explore } = this.props;
+    const { currentRoom } = this.props;
 
     return (
       <FlexRow alignCenter>
@@ -50,7 +50,7 @@ class ActionButtons extends Component {
         <Button
           variant="contained"
           color="primary"
-          onClick={explore}
+          onClick={() => explore(currentRoom)}
           disabled={!currentRoom}
         >
           Explore
