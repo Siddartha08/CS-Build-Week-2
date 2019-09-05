@@ -106,7 +106,7 @@ class App extends Component {
           currentRoom.id;
 
         await updateRoom(nextRoom);
-        visitedRoom = await updateRoom(visitedRoom);
+        await updateRoom(visitedRoom);
       }
 
       console.log(visitedRoom);

@@ -66,3 +66,17 @@ export const addRoom = room => {
         });
     });
 };
+
+export const updateRoom = room => {
+  /**
+   * updates a room in the map
+   */
+
+  // initialize the list with an empty array for this node
+  return db
+    .table("rooms")
+    .put(room)
+    .then(() => {
+      return room;
+    });
+};
