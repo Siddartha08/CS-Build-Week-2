@@ -5,10 +5,12 @@ import { ActionButtons } from "./ActionButtons";
 import axios from "axios";
 import config from "config";
 import { init } from "../db";
+import { status } from "./actions";
 
 class App extends Component {
   state = {
-    currentRoom: null
+    currentRoom: null,
+    player: null
   };
 
   componentDidMount() {
@@ -17,6 +19,11 @@ class App extends Component {
     init().then(room => {
       this.setCurrentRoom(room);
     });
+
+    // TODO uncomment this when status has been completed in ./actions.js
+    /*status().then(player => {
+      this.setState({ player });
+    });*/
   }
 
   setCurrentRoom = currentRoom => {
