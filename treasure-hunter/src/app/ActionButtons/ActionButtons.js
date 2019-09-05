@@ -1,17 +1,15 @@
 import React, { Component } from "react";
 import { FlexRow } from "style";
 import { Button } from "@material-ui/core";
-import withData from "./data/withData";
-import { explore } from "../../db";
+import { move } from "../actions";
 
 class ActionButtons extends Component {
-  move = dir => {
+  moveAndSetCurrentRoom = dir => {
     // TODO look up room id in dictionary to see if we know the next room id and send that along if so
 
-    this.props
-      .move(dir)
+    move(dir)
       .then(room => {
-        console.log(room);
+        this.props.setCurrentRoom(room);
       })
       .catch(err => {});
   };
@@ -24,28 +22,28 @@ class ActionButtons extends Component {
         <Button
           variant="contained"
           color="secondary"
-          onClick={() => this.move("n")}
+          onClick={() => this.moveAndSetCurrentRoom("n")}
         >
           N
         </Button>
         <Button
           variant="contained"
           color="secondary"
-          onClick={() => this.move("s")}
+          onClick={() => this.moveAndSetCurrentRoom("s")}
         >
           S
         </Button>
         <Button
           variant="contained"
           color="secondary"
-          onClick={() => this.move("w")}
+          onClick={() => this.moveAndSetCurrentRoom("w")}
         >
           W
         </Button>
         <Button
           variant="contained"
           color="secondary"
-          onClick={() => this.move("e")}
+          onClick={() => this.moveAndSetCurrentRoom("e")}
         >
           E
         </Button>
@@ -62,4 +60,4 @@ class ActionButtons extends Component {
   }
 }
 
-export default withData(ActionButtons);
+export default ActionButtons;
