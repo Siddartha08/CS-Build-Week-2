@@ -4,23 +4,35 @@ import "./App.css";
 import { ActionButtons } from "./ActionButtons";
 import axios from "axios";
 import config from "config";
-import db from "../db";
+import { init } from "../db";
 
 class App extends Component {
+  state = {
+    currentRoom: null
+  };
+
   componentDidMount() {
     axios.defaults.headers.common["Authorization"] = `Token ${config.API_KEY}`;
 
-    db.table("treasureMap")
-      .toArray()
-      .then(map => {
-        this.setState({ map });
-      });
+    init().then(room => {
+      this.setCurrentRoom(room);
+    });
   }
 
+  setCurrentRoom = currentRoom => {
+    this.setState({ currentRoom });
+  };
+
   render() {
+    const { currentRoom } = this.state;
+
     return (
       <div className="App">
-        <ActionButtons />
+        <ActionButtons
+          currentRoom={currentRoom}
+          explore={this.explore}
+          setCurrentRoom={this.setCurrentRoom}
+        />
       </div>
     );
   }
