@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { FlexRow } from "style";
 import { Button } from "@material-ui/core";
 import withData from "./data/withData";
+import { explore } from "../../db";
 
 class ActionButtons extends Component {
   move = dir => {
@@ -16,6 +17,8 @@ class ActionButtons extends Component {
   };
 
   render() {
+    const { currentRoom, explore } = this.props;
+
     return (
       <FlexRow alignCenter>
         <Button
@@ -45,6 +48,14 @@ class ActionButtons extends Component {
           onClick={() => this.move("e")}
         >
           E
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={explore}
+          disabled={!currentRoom}
+        >
+          Explore
         </Button>
       </FlexRow>
     );
