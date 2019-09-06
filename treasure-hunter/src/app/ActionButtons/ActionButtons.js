@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { FlexRow } from "style";
 import { Button } from "@material-ui/core";
-import { move, explore } from "../actions";
+import { move, explore, take } from "../actions";
 
 class ActionButtons extends Component {
   moveAndSetCurrentRoom = dir => {
@@ -12,6 +12,17 @@ class ActionButtons extends Component {
         this.props.setCurrentRoom(room);
       })
       .catch(err => {});
+  };
+
+  handleTake = async () => {
+    const { currentRoom } = this.props;
+
+    if (currentRoom.items.length) {
+      for (let item of currentRoom.items.length) {
+        const itemTaken = await take(item);
+        console.log(itemTaken);
+      }
+    }
   };
 
   render() {
@@ -46,6 +57,14 @@ class ActionButtons extends Component {
           onClick={() => this.moveAndSetCurrentRoom("e")}
         >
           E
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={this.handleTake}
+          disabled={currentRoom && !currentRoom.items.length}
+        >
+          Take Treasure
         </Button>
         <Button
           variant="contained"

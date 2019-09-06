@@ -2,26 +2,6 @@ import axios from "axios";
 import { addRoom, count, getRoom, updateRoom } from "../db";
 import config from "config";
 
-export const examine = itemOrPlayer => {
-  //TODO do this
-};
-
-export const status = () => {
-  //TODO do this
-};
-
-export const take = treasure => {
-  //TODO do this
-};
-
-export const drop = treasure => {
-  //TODO do this
-};
-
-export const pray = () => {
-  //TODO do this
-};
-
 export const getOppositeDir = dir => {
   const opps = {
     n: "s",
@@ -34,34 +14,116 @@ export const getOppositeDir = dir => {
 };
 
 let cooling = 1;
-export const move = (dir, nextRoomId) => {
+const coolOff = () => {
   return new Promise((resolve, reject) => {
     if (cooling > 1) {
       setTimeout(() => {
-        axios
-          .post(`${config.API_PATH}/move`, {
-            direction: dir,
-            next_room_id: nextRoomId
-          })
-          .then(({ data }) => {
-            cooling = data.cooldown;
-            resolve(data);
-          })
-          .catch(err => reject(err));
-      }, cooling);
+        resolve(true);
+      }, +cooling * 1000);
     } else {
-      axios
-        .post(`${config.API_PATH}/move`, {
-          direction: dir,
-          next_room_id: nextRoomId
-        })
-        .then(({ data }) => {
-          cooling = data.cooldown;
-          resolve(data);
-        })
-        .catch(err => reject(err));
+      resolve(true);
     }
   });
+};
+
+export const examine = async itemOrPlayer => {
+  await coolOff();
+
+  return axios
+    .post(`${config.API_PATH}/examine`, {
+      name: itemOrPlayer
+    })
+    .then(({ data }) => {
+      cooling = data.cooldown ? +data.cooldown : 15;
+      return data;
+    })
+    .catch(err => {
+      throw err;
+    });
+};
+
+export const status = async () => {
+  await coolOff();
+
+  return axios
+    .post(`${config.API_PATH}/status`)
+    .then(({ data }) => {
+      cooling = data.cooldown ? +data.cooldown : 15;
+      return data;
+    })
+    .catch(err => {
+      throw err;
+    });
+};
+
+export const take = async treasure => {
+  await coolOff();
+
+  return axios
+    .post(`${config.API_PATH}/take`, {
+      name: treasure
+    })
+    .then(({ data }) => {
+      cooling = data.cooldown ? +data.cooldown : 15;
+      return data;
+    })
+    .catch(err => {
+      throw err;
+    });
+};
+
+export const drop = async treasure => {
+  await coolOff();
+
+  return axios
+    .post(`${config.API_PATH}/drop`, {
+      name: treasure
+    })
+    .then(({ data }) => {
+      cooling = data.cooldown ? +data.cooldown : 15;
+      return data;
+    })
+    .catch(err => {
+      throw err;
+    });
+};
+
+export const sell = async item => {
+  await coolOff();
+
+  return axios
+    .post(`${config.API_PATH}/sell`, {
+      name: item,
+      confirm: "yes"
+    })
+    .then(({ data }) => {
+      cooling = data.cooldown ? +data.cooldown : 15;
+      return data;
+    })
+    .catch(err => {
+      throw err;
+    });
+};
+
+export const pray = () => {
+  //TODO do this
+};
+
+export const move = async (dir, nextRoomId) => {
+  await coolOff();
+
+  return axios
+    .post(`${config.API_PATH}/move`, {
+      direction: dir,
+      next_room_id: nextRoomId
+    })
+    .then(({ data }) => {
+      cooling = data.cooldown ? +data.cooldown : 15;
+      return data;
+    })
+    .catch(err => {
+      throw err;
+    });
 };
 
 export const explore = async currentRoom => {
@@ -70,52 +132,75 @@ export const explore = async currentRoom => {
   // if total rooms length is <500 proceed we can also change this to stop on button click instead
   const totalRooms = await count();
 
-  if (totalRooms < 500) {
-    // find an unvisited room in currentRoom.exits, set to "exit"
-    let exit;
-    for (let ex of Object.keys(currentRoom.exits)) {
-      if (currentRoom.exits[ex] === -1) {
-        exit = { [ex]: currentRoom.exits[ex] };
-      }
+  // if (totalRooms < 500) {
+  // find an unvisited room in currentRoom.exits, set to "exit"
+  let exit;
+  console.log(
+    "current room",
+    JSON.stringify(currentRoom, null, 1),
+    currentRoom.exits
+  );
+  for (let ex of Object.keys(currentRoom.exits)) {
+    if (currentRoom.exits[ex] === -1) {
+      exit = { [ex]: currentRoom.exits[ex] };
     }
-
-    // if none exist and exists length is one, use the only exit
-    if (!exit && Object.keys(currentRoom.exits).length === 1) {
-      for (let ex of Object.keys(currentRoom.exits)) {
-        exit = { [ex]: currentRoom.exits[ex] };
-      }
-    } else {
-      // otherwise, use a random exit?
-    }
-
-    console.log(exit);
-
-    // try to move
-    let nextRoom = await move(Object.keys(exit)[0]);
-
-    // look up room in db, if it doesn't exist add one. If it does, update exits
-    let visitedRoom = await getRoom(nextRoom.room_id);
-    if (!visitedRoom) {
-      visitedRoom = await addRoom(nextRoom);
-    } else {
-      // update exits: set opposite exit of exit to currentRoom and set exit of currentRoom to visitedRoom
-      //update currentRoom
-      currentRoom.exits[Object.keys(exit)[0]] = visitedRoom.id;
-
-      //update visitedRoom
-      visitedRoom.exits[getOppositeDir(Object.keys(exit)[0])] = currentRoom.id;
-
-      await updateRoom(currentRoom, currentRoom.id);
-      await updateRoom(visitedRoom, visitedRoom.id);
-    }
-
-    // TODO examine current room
-    // TODO check your status
-    // TODO if there are items in the room and the weight does not exceed your encumbrance, pick it up
-    // TODO if you're in a store, sell the treasure
-    // TODO if you're at a shrine, pray
-
-    console.log(visitedRoom);
-    // recurse
   }
+  // if none exist and exists length is one, use the only exit
+  if (!exit && Object.keys(currentRoom.exits).length === 1) {
+    for (let ex of Object.keys(currentRoom.exits)) {
+      exit = { [ex]: currentRoom.exits[ex] };
+    }
+  } else if (!exit) {
+    // otherwise, use a random exit
+    const exits = Object.keys(currentRoom.exits);
+    const ex = exits[Math.floor(Math.random() * exits.length)];
+    exit = { [ex]: currentRoom.exits[ex] };
+  }
+  console.log("now heading ", exit);
+  // try to move
+  let nextRoom = await move(Object.keys(exit)[0]);
+
+  // look up room in db, if it doesn't exist add one. If it does, update exits
+  // update exits: set opposite exit of exit to currentRoom and set exit of currentRoom to visitedRoom
+  let visitedRoom = await getRoom(nextRoom.room_id);
+  if (!visitedRoom) {
+    visitedRoom = await addRoom(nextRoom);
+  }
+
+  //update visitedRoom
+  visitedRoom.exits[getOppositeDir(Object.keys(exit)[0])] = currentRoom.id;
+  await updateRoom(visitedRoom, visitedRoom.id);
+
+  //update currentRoom
+  currentRoom.exits[Object.keys(exit)[0]] = visitedRoom.id;
+  await updateRoom(currentRoom, currentRoom.id);
+
+  console.log("now in", visitedRoom);
+  // if there are items in the room, pick it up
+  if (visitedRoom.items.length) {
+    for (let item of visitedRoom.items) {
+      const itemTaken = await take(item);
+      console.log("item taken", itemTaken);
+    }
+  }
+
+  // you're in a store, sell the treasure
+  if (visitedRoom.title === "Store") {
+    // get current inventory
+    const status = await status();
+    console.log("status:", status);
+
+    // if there is inventory, sell each item
+    if (status.inventory.length) {
+      for (let item of status.inventory) {
+        const soldItem = await sell(item);
+        console.log("item sold: ", soldItem);
+      }
+    }
+  }
+
+  // TODO if you're at a shrine, pray
+
+  explore(visitedRoom);
+  // }
 };
