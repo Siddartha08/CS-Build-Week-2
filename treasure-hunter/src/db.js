@@ -10,6 +10,8 @@ export const init = () => {
     rooms: "&id"
   });
 
+  count().then(c => console.log("total rooms explored: ", c));
+
   let url = `${config.API_PATH}/init`;
 
   return axios

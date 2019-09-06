@@ -126,57 +126,62 @@ export const move = async (dir, nextRoomId) => {
     });
 };
 
-export const explore = async currentRoom => {
-  cooling = currentRoom.cooldown;
+export const explore = async startingRoom => {
+  let breadcrumbs = [];
+  breadcrumbs.push(startingRoom);
+  startingRoom = await addRoom(nextRoom);
 
-  // if total rooms length is <500 proceed we can also change this to stop on button click instead
-  const totalRooms = await count();
-
-  // if (totalRooms < 500) {
-  // find an unvisited room in currentRoom.exits, set to "exit"
-  let exit;
   console.log(
-    "current room",
-    JSON.stringify(currentRoom, null, 1),
-    currentRoom.exits
+    "starting room",
+    JSON.stringify(startingRoom, null, 1),
+    startingRoom.exits
   );
-  for (let ex of Object.keys(currentRoom.exits)) {
-    if (currentRoom.exits[ex] === -1) {
-      exit = { [ex]: currentRoom.exits[ex] };
+
+  cooling = startingRoom.cooldown;
+
+  while (breadcrumbs.length) {
+    // remove from stack, this is out current room
+    const r = breadcrumbs.pop();
+
+    let visitedAllDirs = true;
+    for (let ex of Object.keys(r.exits)) {
+      // if it is unvisited go that way
+      if (r.exits[ex] === -1) {
+        visitedAllDirs = false;
+        const exit = { [ex]: r.exits[ex] };
+        console.log("now heading ", exit);
+        // try to move
+        let nextRoom = await move(Object.keys(exit)[0]);
+
+        // add it to the stack so we can backtrack
+        breadcrumbs.push(nextRoom);
+
+        // set our next room, visitedRoom
+        let visitedRoom = await addRoom(nextRoom);
+
+        // update visitedRoom exit with previous room id
+        visitedRoom.exits[getOppositeDir(Object.keys(exit)[0])] = r.id;
+        await updateRoom(visitedRoom, visitedRoom.id);
+
+        // update previous room exist with visitedRoom id, this is same as marking it visited
+        r.exits[Object.keys(exit)[0]] = visitedRoom.id;
+        await updateRoom(r, r.id);
+
+        console.log("now in", visitedRoom);
+      }
+    }
+
+    if (visitedAllDirs) {
+      // we've visited all directions for this room. we need to backtrack now
+      const goBackTo = breadcrumbs[0],
+        ids = Object.values(goBackTo.exits),
+        ind = ids.indexOf(goBackTo.id),
+        dir = Object.keys(goBackTo.exits)[ind];
+      await move(dir);
     }
   }
-  // if none exist and exists length is one, use the only exit
-  if (!exit && Object.keys(currentRoom.exits).length === 1) {
-    for (let ex of Object.keys(currentRoom.exits)) {
-      exit = { [ex]: currentRoom.exits[ex] };
-    }
-  } else if (!exit) {
-    // otherwise, use a random exit
-    const exits = Object.keys(currentRoom.exits);
-    const ex = exits[Math.floor(Math.random() * exits.length)];
-    exit = { [ex]: currentRoom.exits[ex] };
-  }
-  console.log("now heading ", exit);
-  // try to move
-  let nextRoom = await move(Object.keys(exit)[0]);
 
-  // look up room in db, if it doesn't exist add one. If it does, update exits
-  // update exits: set opposite exit of exit to currentRoom and set exit of currentRoom to visitedRoom
-  let visitedRoom = await getRoom(nextRoom.room_id);
-  if (!visitedRoom) {
-    visitedRoom = await addRoom(nextRoom);
-  }
-
-  //update visitedRoom
-  visitedRoom.exits[getOppositeDir(Object.keys(exit)[0])] = currentRoom.id;
-  await updateRoom(visitedRoom, visitedRoom.id);
-
-  //update currentRoom
-  currentRoom.exits[Object.keys(exit)[0]] = visitedRoom.id;
-  await updateRoom(currentRoom, currentRoom.id);
-
-  console.log("now in", visitedRoom);
-  // if there are items in the room, pick it up
+  /*  // if there are items in the room, pick it up
   if (visitedRoom.items.length) {
     for (let item of visitedRoom.items) {
       const itemTaken = await take(item);
@@ -197,10 +202,9 @@ export const explore = async currentRoom => {
         console.log("item sold: ", soldItem);
       }
     }
-  }
+  }*/
 
   // TODO if you're at a shrine, pray
 
-  explore(visitedRoom);
   // }
 };
