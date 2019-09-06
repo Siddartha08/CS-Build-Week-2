@@ -18,9 +18,9 @@ class ActionButtons extends Component {
     const { currentRoom } = this.props;
 
     if (currentRoom.items.length) {
-      for (let item of currentRoom.items.length) {
+      for (let item of currentRoom.items) {
         const itemTaken = await take(item);
-        console.log(itemTaken);
+        console.log("item taken: ", itemTaken);
       }
     }
   };
